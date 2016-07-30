@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+
+from catkin_pkg.topological_order import topological_order
+import requests
+import yaml
+
+ROSDEP_URLS = (
+    'https://github.com/ros/rosdistro/raw/master/rosdep/base.yaml',
+    'https://github.com/ros/rosdistro/raw/master/rosdep/python.yaml')
+
+
+def get_rosdeps(workspace_path):
+    packages = zip(*topological_order(workspace_path))[1]
+    deps = set()
+
+    for pkg in packages:
+        for dep in pkg.build_depends + pkg.run_depends:
+            deps.add(dep.name)
+
+    deps -= set([pkg.name for pkg in packages])
+    return deps
+
+
+def get_rosdep_data(distro):
+    ROSDEP_PATHS = (
+        lambda p: p['ubuntu'],
+        lambda p: p['ubuntu'][distro],
+        lambda p: p['ubuntu'][distro]['packages'],
+        lambda p: p['ubuntu']['apt']['packages'],
+        lambda p: p['ubuntu'][distro]['apt']['packages'])
+
+    def _parse(data):
+        for key, data in data.iteritems():
+            for path in ROSDEP_PATHS:
+                try:
+                    if isinstance(path(data), str):
+                        yield key, [path(data)]
+                    if isinstance(path(data), list):
+                        yield key, path(data)
+                except (KeyError, TypeError):
+                    pass
+
+    data = {}
+    for url in ROSDEP_URLS:
+        data.update(_parse(yaml.safe_load(requests.get(url).text)))
+    return data
+    
+
+def resolve_deps(rosdep_data, deps):
+    return sorted(set([pkg for dep in deps for pkg in rosdep_data[dep]]))
+
+
+if __name__ == '__main__':
+    print ', '.join(resolve_deps(get_rosdep_data('trusty'), get_rosdeps('build')))

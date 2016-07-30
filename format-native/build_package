@@ -1,0 +1,21 @@
+#!/bin/bash
+
+rosinstall_generator ros_base --rosdistro kinetic --deps --tar --flat > ros_base.rosinstall
+wstool init -j8 build ros_base.rosinstall
+DEPS=$(./compute_deps)
+cp -R debian build/debian
+
+cat << EOF > build/debian/control
+Source: roscon-base
+Maintainer: Mike Purvis <mpurvis@clearpath.ai>
+Section: devel
+Priority: extra
+Standards-Version: 3.9.5
+Build-Depends: ${DEPS}
+Homepage: http://clearpathrobotics.com
+
+Package: roscon-base
+Architecture: amd64
+Depends: ${DEPS}
+Description: Bundle of ROS base.
+EOF

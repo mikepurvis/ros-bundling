@@ -1,0 +1,6 @@
+build
+*.sw[op]
+*.dsc
+*.tar.gz
+*.changes
+*.rosinstall
