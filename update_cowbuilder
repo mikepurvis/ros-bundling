@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ ! -d /var/cache/pbuilder/trusty ]; then
+    sudo cowbuilder --create --distribution trusty --components "main universe" \
+                    --othermirror "deb http://archive.ubuntu.com/ubuntu/ trusty-updates main universe"
+fi
+
+echo "apt-key adv --keyserver keyserver.ubuntu.com --recv B01FA116;" \
+     "echo 'deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main' > /etc/apt/sources.list.d/ros-latest.list;" \
+     "apt-get update;" \
+     "apt-get dist-upgrade;" \
+     | sudo cowbuilder --login --save-after-login

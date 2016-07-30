@@ -8,7 +8,7 @@ ROSDEP_URLS = (
     'https://github.com/ros/rosdistro/raw/master/rosdep/base.yaml',
     'https://github.com/ros/rosdistro/raw/master/rosdep/python.yaml')
 
-EXTRA_SYSTEM_DEPS = ['python-catkin-tools', 'cmake']
+EXTRA_SYSTEM_DEPS = ['cmake', 'debhelper', 'python-catkin-tools']
 
 
 def get_rosdeps(workspace_path):

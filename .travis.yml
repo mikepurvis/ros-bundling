@@ -1,0 +1,19 @@
+language: generic
+sudo: required
+dist: trusty
+
+matrix:
+  include:
+    - env: BUNDLE_SCHEME=format-native
+
+install:
+  - sudo apt-get update
+  - sudo apt-get install cowbuilder debhelper devscripts
+  - sudo pip install rosinstall_generator wstool
+  - ./update_cowbuilder
+
+script:
+  - cd ${BUNDLE_SCHEME}
+  - ./build_package
+  - sudo cowbuilder --build *.dsc
+  - ls -lah /var/cache/pbuilder/result/*.deb

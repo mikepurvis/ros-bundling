@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 rosinstall_generator ros_base --rosdistro indigo --deps --tar --flat > ros_base.rosinstall
 wstool init -j8 build ros_base.rosinstall
 DEPS=$(./compute_deps)
@@ -21,4 +23,4 @@ Description: Bundle of ROS base.
 EOF
 
 cd build
-dpkg-buildpackage -uc -us -S
+dpkg-buildpackage -uc -us -S -d
