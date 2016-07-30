@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rosinstall_generator ros_base --rosdistro kinetic --deps --tar --flat > ros_base.rosinstall
+rosinstall_generator ros_base --rosdistro indigo --deps --tar --flat > ros_base.rosinstall
 wstool init -j8 build ros_base.rosinstall
 DEPS=$(./compute_deps)
 cp -R debian build/debian
@@ -19,3 +19,6 @@ Architecture: amd64
 Depends: ${DEPS}
 Description: Bundle of ROS base.
 EOF
+
+cd build
+dpkg-buildpackage -uc -us -S

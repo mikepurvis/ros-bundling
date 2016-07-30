@@ -3,5 +3,24 @@
 %:
 	dh $@ 
 
-#clean:
-#	debian/gen-control
+INSTALLROOT=opt/clearpath/demo
+
+override_dh_auto_configure:
+override_dh_auto_build:
+override_dh_shlibdeps:
+override_dh_perl:
+override_dh_makeshlibs:
+
+override_dh_auto_configure:
+	TERM=dumb catkin config --install \
+		--source-space . \
+		--build-space debian/tmp/build \
+		--devel-space debian/tmp/devel \
+		--log-space debian/tmp/logs \
+		--isolate-devel \
+		--install-space debian/tmp/$(INSTALLROOT) \
+		--no-extend
+
+override_dh_auto_install:
+	ROS_HOME=debian/tmp TERM=dumb catkin build --no-status
+	debian/fix_install_paths "debian/tmp/$(INSTALLROOT)" "/$(INSTALLROOT)"

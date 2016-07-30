@@ -1,5 +1,6 @@
 build
 *.sw[op]
+*.deb
 *.dsc
 *.tar.gz
 *.changes

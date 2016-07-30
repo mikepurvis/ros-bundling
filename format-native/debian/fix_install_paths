@@ -1,0 +1,8 @@
+#!/bin/bash
+
+ORIGINAL_PATH=$1
+NEW_PATH=$2
+
+for f in $(find "$ORIGINAL_PATH" -name *.cmake -o -name *.pc -o -name *.sh -o -name _setup_util.py); do
+  sed -i "s|$ORIGINAL_PATH|$NEW_PATH|g" "$f"
+done
