@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+import os
+import re
+import tarfile
+
+from debian.changelog import Changelog
+from rosdistro import get_distribution, get_cached_distribution, get_index
+from rosinstall_generator.generator import generate_rosinstall_for_repos
+from rosinstall_generator.distro import get_recursive_dependencies, generate_rosinstall
+
+from shutil import copytree, rmtree
+from subprocess import Popen, PIPE, STDOUT
+from sys import stdout
+
+
+ROSDISTRO_INDEX_URL = 'https://github.com/ros/rosdistro/raw/master/index.yaml'
+packages = ['ros_base']
+tarballs = []
+distro_name = 'indigo'
+control_file_template = """Source: roscon-base
+Maintainer: Mike Purvis <mpurvis@clearpath.ai>
+Section: devel
+Priority: extra
+Standards-Version: 3.9.5
+Build-Depends: python-catkin-tools
+Homepage: http://clearpathrobotics.com
+
+Package: roscon-base
+Architecture: amd64
+Depends: python
+Description: Bundle of ROS base."""
+
+print ' - parsing debian changelog.'
+with open('debian/changelog') as f:
+    changelog = Changelog(file=f, max_blocks=1)
+print "   -> %s (%s)" % (changelog.get_package(), changelog.full_version)
+
+print ' - fetching rosdistro index.'
+rosdistro_index = get_index(ROSDISTRO_INDEX_URL)
+cache = None
+
+print ' - fetching cached rosdistro distribution.'
+cached_distro = get_cached_distribution(rosdistro_index, distro_name, cache=cache)
+packages += get_recursive_dependencies(cached_distro, packages)  # , source=False)
+
+print ' - resolving system dependencies (skipping).'
+
+print ' - generating debian control file.'
+if os.path.exists('build/debian'):
+    rmtree('build/debian')
+copytree('debian', 'build/debian')
+with open('build/debian/control', 'w') as f:
+    f.write(control_file_template)
+
+print ' - creating debian metadata tarball.'
+debian_tarball = '%s_%s.debian.tar.gz' % (changelog.get_package(), changelog.full_version)
+with tarfile.open(os.path.join('build', debian_tarball), "w:gz") as f:
+    f.add('build/debian', 'debian')
+tarballs.append(debian_tarball)
+
+print ' - creating empty upstream tarball.'
+upstream_tarball = '%s_%s.orig.tar.gz' % (changelog.get_package(), changelog.upstream_version)
+with tarfile.open(os.path.join('build', upstream_tarball), "w:gz"):
+    pass
+tarballs.append(upstream_tarball)
+
+print ' - generating download list.'
+rosinstall_data = generate_rosinstall(cached_distro, packages, flat=True, tar=True)
+aria2_input = []
+for rosinstall_item in rosinstall_data:
+    tarball_version = re.sub("[./_]", "-", rosinstall_item['tar']['version'])
+    tarball = '%s_%s.orig-%s.tar.gz' % (changelog.get_package(), changelog.upstream_version, tarball_version)
+    tarballs.append(tarball)
+    aria2_input.extend((rosinstall_item['tar']['uri'], '  out=%s' % tarball))
+
+print ' - downloading tarballs.'
+aria2_cmd = ['aria2c', '--summary-interval=0', '-j16', '--auto-file-renaming=false', \
+             '--allow-overwrite=true', '--conditional-get=true', '-i', '-']
+Popen(aria2_cmd, stdout=stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate(input='\n'.join(aria2_input))
+
+print ' - creating sourcedeb.'
+# See: https://www.joachim-breitner.de/blog/564-Creating_a_Debian_source_package_without_unpacking_the_source
+dpkg_cmd = ['dpkg-source', '-cdebian/control', '-ldebian/changelog', '--format=3.0 (custom)',
+            '--target-format=3.0 (quilt)', '-b', '/'] + tarballs
+Popen(dpkg_cmd, stdout=stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate()

@@ -5,7 +5,7 @@ set -e
 rosinstall_generator ros_base --rosdistro indigo --deps --tar --flat > ros_base.rosinstall
 wstool init -j8 build ros_base.rosinstall
 DEPS=$(./compute_deps)
-cp -R debian build/debian
+cp -RL debian build/debian
 
 cat << EOF > build/debian/control
 Source: roscon-base

@@ -1,4 +1,4 @@
-roscon-base (0.0.1) trusty; urgency=medium
+roscon-base (0.0.1-0) trusty; urgency=medium
 
   * Demonstration!
 
