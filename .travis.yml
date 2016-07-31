@@ -16,5 +16,5 @@ install:
 script:
   - cd ${BUNDLE_SCHEME}
   - ./build_package
-  - sudo cowbuilder --build *.dsc
+  - sudo cowbuilder --build build/*.dsc
   - ls -lah /var/cache/pbuilder/result/*.deb

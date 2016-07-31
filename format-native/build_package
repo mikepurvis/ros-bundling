@@ -2,12 +2,13 @@
 
 set -e
 
+mkdir -p build
 rosinstall_generator ros_base --rosdistro indigo --deps --tar --flat > ros_base.rosinstall
-wstool init -j8 build ros_base.rosinstall
+wstool init -j8 build/src ros_base.rosinstall
 DEPS=$(./compute_deps)
-cp -RL debian build/debian
+cp -RL debian build/src/debian
 
-cat << EOF > build/debian/control
+cat << EOF > build/src/debian/control
 Source: roscon-base
 Maintainer: Mike Purvis <mpurvis@clearpath.ai>
 Section: devel
@@ -22,5 +23,5 @@ Depends: ${DEPS}
 Description: Bundle of ROS base.
 EOF
 
-cd build
+cd build/src
 dpkg-buildpackage -uc -us -S -d
