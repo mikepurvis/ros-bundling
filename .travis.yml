@@ -5,10 +5,11 @@ dist: trusty
 matrix:
   include:
     - env: BUNDLE_SCHEME=format-native
+    - env: BUNDLE_SCHEME=format-quilt
 
 install:
   - sudo apt-get update
-  - sudo apt-get install cowbuilder debhelper devscripts
+  - sudo apt-get install cowbuilder debhelper devscripts aria2
   - sudo pip install rosinstall_generator wstool
   - ./update_cowbuilder
 

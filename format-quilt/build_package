@@ -80,7 +80,6 @@ aria2_cmd = ['aria2c', '--summary-interval=0', '-j16', '--auto-file-renaming=fal
 Popen(aria2_cmd, stdout=stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate(input='\n'.join(aria2_input))
 
 print ' - creating sourcedeb.'
-# See: https://www.joachim-breitner.de/blog/564-Creating_a_Debian_source_package_without_unpacking_the_source
 dpkg_cmd = ['dpkg-source', '-cdebian/control', '-ldebian/changelog', '--format=3.0 (custom)',
             '--target-format=3.0 (quilt)', '-b', '/'] + tarballs
 Popen(dpkg_cmd, stdout=stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate()
