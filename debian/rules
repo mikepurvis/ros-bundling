@@ -4,6 +4,7 @@
 	dh $@ 
 
 INSTALLROOT=opt/clearpath/demo
+PACKAGES=`cat debian/packages.txt`
 
 override_dh_auto_configure:
 override_dh_auto_build:
@@ -19,6 +20,7 @@ override_dh_auto_configure:
 		--log-space debian/tmp/logs \
 		--isolate-devel \
 		--install-space debian/tmp/$(INSTALLROOT) \
+		--whitelist $(PACKAGES) \
 		--no-extend
 
 override_dh_auto_install:

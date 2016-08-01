@@ -2,16 +2,15 @@
 
 import os
 import re
+import sys
 import tarfile
 
 from debian.changelog import Changelog
 from rosdistro import get_distribution, get_cached_distribution, get_index
 from rosinstall_generator.generator import generate_rosinstall_for_repos
 from rosinstall_generator.distro import get_recursive_dependencies, generate_rosinstall
-
 from shutil import copytree, rmtree
 from subprocess import Popen, PIPE, STDOUT
-from sys import stdout
 
 
 ROSDISTRO_INDEX_URL = 'https://github.com/ros/rosdistro/raw/master/index.yaml'
@@ -31,6 +30,7 @@ Architecture: amd64
 Depends: python
 Description: Bundle of ROS base."""
 
+
 print ' - parsing debian changelog.'
 with open('debian/changelog') as f:
     changelog = Changelog(file=f, max_blocks=1)
@@ -46,12 +46,15 @@ packages += get_recursive_dependencies(cached_distro, packages)  # , source=Fals
 
 print ' - resolving system dependencies (skipping).'
 
-print ' - generating debian control file.'
+
+print ' - generating debian metadata directory.'
 if os.path.exists('build/debian'):
     rmtree('build/debian')
 copytree('debian', 'build/debian')
 with open('build/debian/control', 'w') as f:
     f.write(control_file_template)
+with open('build/debian/packages.txt', 'w') as f:
+    f.write(' '.join(packages))
 
 print ' - creating debian metadata tarball.'
 debian_tarball = '%s_%s.debian.tar.gz' % (changelog.get_package(), changelog.full_version)
@@ -77,9 +80,9 @@ for rosinstall_item in rosinstall_data:
 print ' - downloading tarballs.'
 aria2_cmd = ['aria2c', '--summary-interval=0', '-j16', '--auto-file-renaming=false', \
              '--allow-overwrite=true', '--conditional-get=true', '-i', '-']
-Popen(aria2_cmd, stdout=stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate(input='\n'.join(aria2_input))
+Popen(aria2_cmd, stdout=sys.stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate(input='\n'.join(aria2_input))
 
 print ' - creating sourcedeb.'
 dpkg_cmd = ['dpkg-source', '-cdebian/control', '-ldebian/changelog', '--format=3.0 (custom)',
             '--target-format=3.0 (quilt)', '-b', '/'] + tarballs
-Popen(dpkg_cmd, stdout=stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate()
+Popen(dpkg_cmd, stdout=sys.stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate()

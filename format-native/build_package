@@ -5,8 +5,10 @@ set -e
 mkdir -p build
 rosinstall_generator ros_base --rosdistro indigo --deps --tar --flat > ros_base.rosinstall
 wstool init -j8 build/src ros_base.rosinstall
+PACKAGES=$(ls build/src)
 DEPS=$(./compute_deps)
 cp -RL debian build/src/debian
+echo $PACKAGES > build/src/debian/packages.txt
 
 cat << EOF > build/src/debian/control
 Source: roscon-base
