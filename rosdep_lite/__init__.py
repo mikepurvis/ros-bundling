@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 
-from catkin_pkg.topological_order import topological_order
 import requests
 import yaml
 
-ROSDEP_URLS = (
+DEFAULT_URLS = (
     'https://github.com/ros/rosdistro/raw/master/rosdep/base.yaml',
     'https://github.com/ros/rosdistro/raw/master/rosdep/python.yaml')
 
-EXTRA_SYSTEM_DEPS = ['cmake', 'debhelper', 'python-catkin-tools']
+DEFAULT_EXTRA_SYSTEM_DEPS = ['cmake', 'debhelper', 'python-catkin-tools']
 
 
-def get_rosdeps(workspace_path):
-    packages = zip(*topological_order(workspace_path))[1]
+def get_rosdeps(packages):
     deps = set()
 
     for pkg in packages:
@@ -23,7 +21,7 @@ def get_rosdeps(workspace_path):
     return deps
 
 
-def get_rosdep_data(distro):
+def get_rosdep_data(distro, urls=DEFAULT_URLS):
     ROSDEP_PATHS = (
         lambda p: p['ubuntu'],
         lambda p: p['ubuntu'][distro],
@@ -43,14 +41,10 @@ def get_rosdep_data(distro):
                     pass
 
     data = {}
-    for url in ROSDEP_URLS:
+    for url in urls:
         data.update(_parse(yaml.safe_load(requests.get(url).text)))
     return data
     
 
-def resolve_deps(rosdep_data, deps):
-    return sorted(set([pkg for dep in deps for pkg in rosdep_data[dep]] + EXTRA_SYSTEM_DEPS))
-
-
-if __name__ == '__main__':
-    print ', '.join(resolve_deps(get_rosdep_data('trusty'), get_rosdeps('build')))
+def resolve_deps(rosdep_data, deps, extra_system_deps=DEFAULT_EXTRA_SYSTEM_DEPS):
+    return sorted(set([pkg for dep in deps for pkg in rosdep_data[dep]] + extra_system_deps))

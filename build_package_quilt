@@ -5,7 +5,9 @@ import re
 import sys
 import tarfile
 
+from catkin_pkg.package import parse_package_string
 from debian.changelog import Changelog
+from rosdep_lite import resolve_deps, get_rosdep_data, get_rosdeps
 from rosdistro import get_distribution, get_cached_distribution, get_index
 from rosinstall_generator.generator import generate_rosinstall_for_repos
 from rosinstall_generator.distro import get_recursive_dependencies, generate_rosinstall
@@ -14,20 +16,21 @@ from subprocess import Popen, PIPE, STDOUT
 
 
 ROSDISTRO_INDEX_URL = 'https://github.com/ros/rosdistro/raw/master/index.yaml'
-packages = ['ros_base']
+ROSDISTRO_NAME = 'indigo'
+UBUNTU_DISTRO = 'trusty'
+package_names = ['ros_base']
 tarballs = []
-distro_name = 'indigo'
 control_file_template = """Source: roscon-base
 Maintainer: Mike Purvis <mpurvis@clearpath.ai>
 Section: devel
 Priority: extra
 Standards-Version: 3.9.5
-Build-Depends: python-catkin-tools
+Build-Depends: {system_deps}
 Homepage: http://clearpathrobotics.com
 
 Package: roscon-base
 Architecture: amd64
-Depends: python
+Depends: {system_deps}
 Description: Bundle of ROS base."""
 
 
@@ -41,20 +44,23 @@ rosdistro_index = get_index(ROSDISTRO_INDEX_URL)
 cache = None
 
 print ' - fetching cached rosdistro distribution.'
-cached_distro = get_cached_distribution(rosdistro_index, distro_name, cache=cache)
-packages += get_recursive_dependencies(cached_distro, packages)  # , source=False)
+cached_distro = get_cached_distribution(rosdistro_index, ROSDISTRO_NAME, cache=cache)
+package_names += get_recursive_dependencies(cached_distro, package_names)  # , source=False)
 
-print ' - resolving system dependencies (skipping).'
-
+print ' - resolving system dependencies.'
+parsed_packages = [parse_package_string(cached_distro.get_release_package_xml(p)) for p in package_names]
+system_deps = resolve_deps(get_rosdep_data(UBUNTU_DISTRO), get_rosdeps(parsed_packages))
 
 print ' - generating debian metadata directory.'
 if os.path.exists('build/debian'):
     rmtree('build/debian')
 copytree('debian', 'build/debian')
 with open('build/debian/control', 'w') as f:
-    f.write(control_file_template)
+    f.write(control_file_template.format(system_deps=', '.join(system_deps)))
 with open('build/debian/packages.txt', 'w') as f:
-    f.write(' '.join(packages))
+    f.write(' '.join(package_names))
+with open('build/debian/source/format', 'w') as f:
+    f.write('3.0 (quilt)')
 
 print ' - creating debian metadata tarball.'
 debian_tarball = '%s_%s.debian.tar.gz' % (changelog.get_package(), changelog.full_version)
@@ -69,7 +75,7 @@ with tarfile.open(os.path.join('build', upstream_tarball), "w:gz"):
 tarballs.append(upstream_tarball)
 
 print ' - generating download list.'
-rosinstall_data = generate_rosinstall(cached_distro, packages, flat=True, tar=True)
+rosinstall_data = generate_rosinstall(cached_distro, package_names, flat=True, tar=True)
 aria2_input = []
 for rosinstall_item in rosinstall_data:
     tarball_version = re.sub("[./_]", "-", rosinstall_item['tar']['version'])

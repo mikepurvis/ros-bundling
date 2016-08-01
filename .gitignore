@@ -5,3 +5,4 @@ build
 *.tar.gz
 *.changes
 *.rosinstall
+*.py[co]

@@ -4,8 +4,8 @@ dist: trusty
 
 matrix:
   include:
-    - env: BUNDLE_SCHEME=format-native
-    - env: BUNDLE_SCHEME=format-quilt
+    - env: SCHEME=native
+    - env: SCHEME=quilt
 
 install:
   - sudo apt-get update
@@ -14,7 +14,6 @@ install:
   - ./update_cowbuilder
 
 script:
-  - cd ${BUNDLE_SCHEME}
-  - ./build_package
+  - ./build_package_${SCHEME}
   - sudo cowbuilder --build build/*.dsc
   - ls -lah /var/cache/pbuilder/result/*.deb

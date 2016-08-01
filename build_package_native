@@ -3,13 +3,14 @@
 set -e
 
 mkdir -p build
-rosinstall_generator ros_base --rosdistro indigo --deps --tar --flat > ros_base.rosinstall
-wstool init -j8 build/src ros_base.rosinstall
+rosinstall_generator ros_base --rosdistro indigo --deps --tar --flat > build/ros_base.rosinstall
+wstool init -j8 build/src build/ros_base.rosinstall
 PACKAGES=$(ls build/src)
-DEPS=$(./compute_deps)
 cp -RL debian build/src/debian
 echo $PACKAGES > build/src/debian/packages.txt
+echo "3.0 (native)" > build/src/debian/source/format
 
+DEPS=$(python -m rosdep_lite.deps_from_workspace build/src trusty)
 cat << EOF > build/src/debian/control
 Source: roscon-base
 Maintainer: Mike Purvis <mpurvis@clearpath.ai>
