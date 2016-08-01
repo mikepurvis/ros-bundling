@@ -2,7 +2,6 @@
 
 import os
 import re
-import sys
 import tarfile
 
 from catkin_pkg.package import parse_package_string
@@ -86,9 +85,11 @@ for rosinstall_item in rosinstall_data:
 print ' - downloading tarballs.'
 aria2_cmd = ['aria2c', '--summary-interval=0', '-j16', '--auto-file-renaming=false', \
              '--allow-overwrite=true', '--conditional-get=true', '-i', '-']
-Popen(aria2_cmd, stdout=sys.stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate(input='\n'.join(aria2_input))
+with open('build/aria2.log', 'w') as f:
+    Popen(aria2_cmd, stdout=f, stdin=PIPE, stderr=STDOUT, cwd='build').communicate(input='\n'.join(aria2_input))
 
 print ' - creating sourcedeb.'
 dpkg_cmd = ['dpkg-source', '-cdebian/control', '-ldebian/changelog', '--format=3.0 (custom)',
             '--target-format=3.0 (quilt)', '-b', '/'] + tarballs
-Popen(dpkg_cmd, stdout=sys.stdout, stdin=PIPE, stderr=STDOUT, cwd='build').communicate()
+with open('build/dpkg-source.log', 'w') as f:
+    Popen(dpkg_cmd, stdout=f, stdin=PIPE, stderr=STDOUT, cwd='build').communicate()
