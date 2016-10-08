@@ -4,8 +4,9 @@ dist: trusty
 
 matrix:
   include:
-    - env: SCHEME=native
-    - env: SCHEME=quilt
+    # Override to build ros_base instead of desktop full, just so we don't blow up travis.
+    - env: SCHEME=native ROSDISTRO_PACKAGE=ros_base
+    - env: SCHEME=quilt ROSDISTRO_PACKAGE=ros_base
 
 install:
   - sudo apt-get update

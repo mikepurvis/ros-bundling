@@ -17,7 +17,7 @@ from subprocess import Popen, PIPE, STDOUT
 ROSDISTRO_INDEX_URL = 'https://github.com/ros/rosdistro/raw/master/index.yaml'
 ROSDISTRO_NAME = 'indigo'
 UBUNTU_DISTRO = 'trusty'
-package_names = ['ros_base']
+package_names = [os.environ.get('ROSDISTRO_PACKAGE', 'desktop_full')]
 tarballs = []
 control_file_template = """Source: roscon-base
 Maintainer: Mike Purvis <mpurvis@clearpath.ai>

@@ -2,9 +2,10 @@
 
 set -e
 
+ROSDISTRO_PACKAGE=${ROSDISTRO_PACKAGE:-desktop_full}
 mkdir -p build
-rosinstall_generator ros_base --rosdistro indigo --deps --tar --flat > build/ros_base.rosinstall
-wstool init -j8 build/src build/ros_base.rosinstall
+rosinstall_generator $ROSDISTRO_PACKAGE --rosdistro indigo --deps --tar --flat > build/ws.rosinstall
+wstool init -j8 build/src build/ws.rosinstall
 PACKAGES=$(ls build/src)
 cp -RL debian build/src/debian
 echo $PACKAGES > build/src/debian/packages.txt
