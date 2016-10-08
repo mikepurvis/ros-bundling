@@ -1,5 +1,5 @@
-roscon-base (0.0.1-0) trusty; urgency=medium
+roscon-demo-sdk (2016.10.08-0) trusty; urgency=medium
 
   * Demonstration!
 
- -- Mike Purvis <mpurvis@clearpath.ai>  Fri, 24 Jun 2016 21:12:28 -0400
+ -- Mike Purvis <mpurvis@clearpath.ai>  Sat, 8 Oct 2016 14:12:28 +0900

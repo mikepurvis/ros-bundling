@@ -13,7 +13,7 @@ echo "3.0 (native)" > build/src/debian/source/format
 
 DEPS=$(python -m rosdep_lite.deps_from_workspace build/src trusty)
 cat << EOF > build/src/debian/control
-Source: roscon-base
+Source: roscon-demo-sdk
 Maintainer: Mike Purvis <mpurvis@clearpath.ai>
 Section: devel
 Priority: extra
@@ -21,10 +21,10 @@ Standards-Version: 3.9.5
 Build-Depends: ${DEPS}
 Homepage: http://clearpathrobotics.com
 
-Package: roscon-base
+Package: roscon-demo-sdk
 Architecture: amd64
 Depends: ${DEPS}
-Description: Bundle of ROS base.
+Description: Demonstration ROS SDK bundle.
 EOF
 
 cd build/src

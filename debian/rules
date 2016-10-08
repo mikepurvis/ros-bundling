@@ -3,7 +3,7 @@
 %:
 	dh $@ 
 
-INSTALLROOT=opt/clearpath/demo
+INSTALLROOT=opt/roscon/sdk
 PACKAGES=`cat debian/packages.txt`
 
 override_dh_auto_configure:

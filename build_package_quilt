@@ -20,7 +20,7 @@ ROSDISTRO_NAME = 'indigo'
 UBUNTU_DISTRO = 'trusty'
 package_names = [os.environ.get('ROSDISTRO_PACKAGE', 'desktop_full')]
 tarballs = []
-control_file_template = """Source: roscon-base
+control_file_template = """Source: roscon-demo-sdk
 Maintainer: Mike Purvis <mpurvis@clearpath.ai>
 Section: devel
 Priority: extra
@@ -28,10 +28,10 @@ Standards-Version: 3.9.5
 Build-Depends: {system_deps}
 Homepage: http://clearpathrobotics.com
 
-Package: roscon-base
+Package: roscon-demo-sdk
 Architecture: amd64
 Depends: {system_deps}
-Description: Bundle of ROS base."""
+Description: Demonstration ROS SDK bundle."""
 
 
 print ' - parsing debian changelog.'
