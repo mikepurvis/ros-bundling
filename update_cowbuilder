@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [ ! -d /var/cache/pbuilder/trusty ]; then
-    sudo cowbuilder --create --distribution trusty --components "main universe" \
-                    --othermirror "deb http://archive.ubuntu.com/ubuntu/ trusty-updates main universe"
+if [ ! -d /var/cache/pbuilder/base.cow ]; then
+    sudo cowbuilder --create --distribution $(lsb_release -sc) --components "main universe" \
+                    --othermirror "deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc)-updates main universe"
 fi
 
-echo "apt-key adv --keyserver keyserver.ubuntu.com --recv B01FA116;" \
+echo "apt-key adv --keyserver keyserver.ubuntu.com --recv B01FA116 100C5795;" \
      "echo 'deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main' > /etc/apt/sources.list.d/ros-latest.list;" \
+     "echo 'deb http://ppa.launchpad.net/mikepurvis/dpkg/ubuntu $(lsb_release -sc) main' > /etc/apt/sources.list.d/parallel-dpkg.list;" \
      "apt-get update;" \
-     "apt-get dist-upgrade;" \
+     "apt-get -y dist-upgrade;" \
      | sudo cowbuilder --login --save-after-login
