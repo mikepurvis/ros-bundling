@@ -8,13 +8,14 @@ from catkin_pkg.package import parse_package_string
 from debian.changelog import Changelog
 from rosdep_lite import resolve_deps, get_rosdep_data, get_rosdeps
 from rosdistro import get_distribution, get_cached_distribution, get_index
+from rosdistro.distribution_cache_generator import generate_distribution_cache
 from rosinstall_generator.generator import generate_rosinstall_for_repos
 from rosinstall_generator.distro import get_recursive_dependencies, generate_rosinstall
 from shutil import copytree, rmtree
 from subprocess import Popen, PIPE, STDOUT
 
 
-ROSDISTRO_INDEX_URL = 'https://github.com/ros/rosdistro/raw/master/index.yaml'
+ROSDISTRO_INDEX_URL = 'https://github.com/mikepurvis/rosdistro/raw/%s/index.yaml'
 ROSDISTRO_NAME = 'indigo'
 UBUNTU_DISTRO = 'trusty'
 package_names = [os.environ.get('ROSDISTRO_PACKAGE', 'desktop_full')]
@@ -39,16 +40,21 @@ with open('debian/changelog') as f:
 print "   -> %s (%s)" % (changelog.get_package(), changelog.full_version)
 
 print ' - fetching rosdistro index.'
-rosdistro_index = get_index(ROSDISTRO_INDEX_URL)
-cache = None
+rosdistro_index = get_index(ROSDISTRO_INDEX_URL % changelog.upstream_version)
 
-print ' - fetching cached rosdistro distribution.'
+print ' - updating cached rosdistro distribution.'
+print "   -> Using [%s] from %s" % (ROSDISTRO_NAME, ROSDISTRO_INDEX_URL % changelog.upstream_version)
+cache = generate_distribution_cache(rosdistro_index, ROSDISTRO_NAME)
 cached_distro = get_cached_distribution(rosdistro_index, ROSDISTRO_NAME, cache=cache)
+
+print ' - resolving distribution dependencies.'
 package_names += get_recursive_dependencies(cached_distro, package_names)  # , source=False)
+print '   -> bundle to contain %d packages' % len(package_names)
 
 print ' - resolving system dependencies.'
 parsed_packages = [parse_package_string(cached_distro.get_release_package_xml(p)) for p in package_names]
 system_deps = resolve_deps(get_rosdep_data(UBUNTU_DISTRO), get_rosdeps(parsed_packages))
+print '   -> bundle to have %d dependencies' % len(system_deps)
 
 print ' - generating debian metadata directory.'
 if os.path.exists('build/debian'):
