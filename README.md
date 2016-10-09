@@ -3,7 +3,9 @@ ROS Bundling [![Build Status](https://travis-ci.org/mikepurvis/ros-bundling.svg?
 
 This repo serves as a minimalist demonstration of bundling multiple catkin/cmake packages into a single deployment unit. In each case, you may execute the `build_package` script to demonstrate creating a DSC file, which can then be built into a binary using pbuilder, sbuild, or an external service such as Launchpad (assuming any dependencies are present). Please see the travis config for further details.
 
-This repo is the companion to a planned talk at [ROSCON 2016 in Seoul](http://roscon.ros.org/2016/#program).
+The "native" example is simpler and serves primarily as a conceptual guide, whereas the "quilt" example is more powerful and flexible, and the suggested method for users interested in building up their own bundle deployment pipeline.
+
+This repo is the companion to a [ROSCON talk](http://roscon.ros.org/2016/#program), given in Seoul in October 2016.
 
 
 Native Format
